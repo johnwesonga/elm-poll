@@ -105,7 +105,7 @@ pollTotals : Model -> Html Msg
 pollTotals model =
     footer []
         [ div [] [ text "Total:" ]
-        , div [] [ text (toString model.totalVotes) ]
+        , div [] [ text <| toString <| model.totalVotes ]
         ]
 
 
