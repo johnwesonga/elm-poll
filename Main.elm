@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (..)
 
 
 -- MODEL
@@ -13,19 +13,13 @@ type alias Model =
     , choiceTwo : Int
     , choiceThree : Int
     , totalVotes : Int
-    , optionOne : String
+    , selectedOption : String
     }
-
-
-type Dessert
-    = Eclair
-    | Cake
-    | Wareva
 
 
 type Msg
     = NoOp
-    | Vote Dessert
+    | Vote String
     | SubmitVote
 
 
@@ -35,7 +29,7 @@ initModel =
     , choiceTwo = 0
     , choiceThree = 0
     , totalVotes = 0
-    , optionOne = ""
+    , selectedOption = ""
     }
 
 
@@ -50,38 +44,38 @@ update msg model =
             model
 
         SubmitVote ->
-            let
-                selectedOption =
-                    model.optionOne
-            in
-                case selectedOption of
-                    "Eclair" ->
-                        { model
-                            | choiceOne = model.choiceOne + 1
-                            , totalVotes = model.totalVotes + 1
-                        }
-
-                    "Cake" ->
-                        { model
-                            | choiceTwo = model.choiceTwo + 1
-                            , totalVotes = model.totalVotes + 1
-                        }
-
-                    "Wareva" ->
-                        { model
-                            | choiceThree = model.choiceThree + 1
-                            , totalVotes = model.totalVotes + 1
-                        }
-
-                    _ ->
-                        model
+            if (String.isEmpty model.selectedOption) then
+                model
+            else
+                submitvote model
 
         Vote dessert ->
-            let
-                dessertName =
-                    toString dessert
-            in
-                { model | optionOne = dessertName }
+            { model | selectedOption = dessert }
+
+
+submitvote : Model -> Model
+submitvote model =
+    case model.selectedOption of
+        "Eclair" ->
+            { model
+                | choiceOne = model.choiceOne + 1
+                , totalVotes = model.totalVotes + 1
+            }
+
+        "Cake" ->
+            { model
+                | choiceTwo = model.choiceTwo + 1
+                , totalVotes = model.totalVotes + 1
+            }
+
+        "Wareva" ->
+            { model
+                | choiceThree = model.choiceThree + 1
+                , totalVotes = model.totalVotes + 1
+            }
+
+        _ ->
+            model
 
 
 
@@ -91,25 +85,19 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ div [ class "heading" ]
-            [ h2 []
-                [ text "Elm Opinion Poll"
-                ]
-            , p []
-                [ text "What is your favorite dessert?"
-                ]
-            ]
-        , div [ class "pollForm" ]
-            [ radio "Eclair" (Vote Eclair)
-            , radio "Cake" (Vote Cake)
-            , radio "Wareva!!" (Vote Wareva)
-            , button [ type_ "button", onClick SubmitVote ] [ text "Vote" ]
-            ]
-        , div [ class "totalVotes" ]
-            [ h3 []
-                [ text "Total Votes"
-                ]
-            ]
+        [ h1 [] [ text "Elm Opinion Poll" ]
+        , pollForm model
+        , p [] [ text (toString model) ]
+        ]
+
+
+pollForm : Model -> Html Msg
+pollForm model =
+    Html.form [ onSubmit SubmitVote ]
+        [ radio "Eclair" (Vote "Eclair")
+        , radio "Cake" (Vote "Cake")
+        , radio "Wareva!!" (Vote "Wareva")
+        , button [ type_ "submit" ] [ text "Vote" ]
         ]
 
 
