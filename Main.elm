@@ -1,7 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, fieldset, input, label, text, button)
-import Html.Attributes exposing (name, style, type_)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
 
@@ -9,28 +9,33 @@ import Html.Events exposing (onClick)
 
 
 type alias Model =
-    { question : String
-    , choiceOne : Int
+    { choiceOne : Int
     , choiceTwo : Int
+    , choiceThree : Int
+    , totalVotes : Int
+    , optionOne : String
     }
 
 
-type Party
-    = Jubilee
-    | NASA
+type Dessert
+    = Eclair
+    | Cake
     | Wareva
 
 
 type Msg
     = NoOp
-    | Vote Party
+    | Vote Dessert
+    | SubmitVote
 
 
 initModel : Model
 initModel =
-    { question = ""
-    , choiceOne = 0
+    { choiceOne = 0
     , choiceTwo = 0
+    , choiceThree = 0
+    , totalVotes = 0
+    , optionOne = ""
     }
 
 
@@ -44,20 +49,39 @@ update msg model =
         NoOp ->
             model
 
-        Vote party ->
+        SubmitVote ->
             let
-                partyName =
-                    toString party
+                selectedOption =
+                    model.optionOne
             in
-                case partyName of
-                    "Jubilee" ->
-                        { model | choiceOne = model.choiceOne + 1 }
+                case selectedOption of
+                    "Eclair" ->
+                        { model
+                            | choiceOne = model.choiceOne + 1
+                            , totalVotes = model.totalVotes + 1
+                        }
 
-                    "NASA" ->
-                        { model | choiceTwo = model.choiceTwo + 1 }
+                    "Cake" ->
+                        { model
+                            | choiceTwo = model.choiceTwo + 1
+                            , totalVotes = model.totalVotes + 1
+                        }
+
+                    "Wareva" ->
+                        { model
+                            | choiceThree = model.choiceThree + 1
+                            , totalVotes = model.totalVotes + 1
+                        }
 
                     _ ->
                         model
+
+        Vote dessert ->
+            let
+                dessertName =
+                    toString dessert
+            in
+                { model | optionOne = dessertName }
 
 
 
@@ -66,12 +90,25 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.form []
-        [ fieldset []
-            [ radio "Jubilee" (Vote Jubilee)
-            , radio "NASA" (Vote NASA)
+    div [ class "container" ]
+        [ div [ class "heading" ]
+            [ h2 []
+                [ text "Elm Opinion Poll"
+                ]
+            , p []
+                [ text "What is your favorite dessert?"
+                ]
+            ]
+        , div [ class "pollForm" ]
+            [ radio "Eclair" (Vote Eclair)
+            , radio "Cake" (Vote Cake)
             , radio "Wareva!!" (Vote Wareva)
-            , button [ type_ "submit" ] [ text "Vote" ]
+            , button [ type_ "button", onClick SubmitVote ] [ text "Vote" ]
+            ]
+        , div [ class "totalVotes" ]
+            [ h3 []
+                [ text "Total Votes"
+                ]
             ]
         ]
 
@@ -80,7 +117,7 @@ radio : String -> msg -> Html msg
 radio value msg =
     label
         [ style [ ( "padding", "20px" ) ] ]
-        [ input [ type_ "radio", name "party", onClick msg ] []
+        [ input [ type_ "radio", name "dessert", onClick msg ] []
         , text value
         ]
 
