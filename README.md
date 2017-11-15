@@ -1,5 +1,5 @@
 # elm-poll
-Very simple implementation of an opinion poll using Elm
+Very simple implementation of an opinion poll using Elm.
 
 ---
 
