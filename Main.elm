@@ -87,7 +87,7 @@ view model =
     div [ class "container" ]
         [ h1 [] [ text "Elm Opinion Poll" ]
         , pollForm model
-        , p [] [ text (toString model) ]
+        , pollTotals model
         ]
 
 
@@ -98,6 +98,14 @@ pollForm model =
         , radio "Cake" (Vote "Cake")
         , radio "Wareva!!" (Vote "Wareva")
         , button [ type_ "submit" ] [ text "Vote" ]
+        ]
+
+
+pollTotals : Model -> Html Msg
+pollTotals model =
+    footer []
+        [ div [] [ text "Total:" ]
+        , div [] [ text (toString model.totalVotes) ]
         ]
 
 
