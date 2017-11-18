@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Basic exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,73 +9,58 @@ import Html.Events exposing (..)
 
 
 type alias Model =
-    { choiceOne : Int
-    , choiceTwo : Int
-    , choiceThree : Int
-    , totalVotes : Int
-    , selectedOption : String
+    { votes : List String
+    , selectedChoice : String
+    , pollChoices : List Choice
     }
+
+
+type alias Choice =
+    { choice : String, value : String, votes : Int }
+
+
+init : Model
+init =
+    let
+        model =
+            Model []
+                ""
+                [ (Choice "Cake" "cake" 0), (Choice "Eclair" "eclair" 0), (Choice "Bread Pudding" "bread-pudding" 0), (Choice "Wareva" "wareva" 0) ]
+    in
+        model
+
+
+
+-- UPDATE --
 
 
 type Msg
-    = NoOp
-    | Vote String
-    | SubmitVote
-
-
-initModel : Model
-initModel =
-    { choiceOne = 0
-    , choiceTwo = 0
-    , choiceThree = 0
-    , totalVotes = 0
-    , selectedOption = ""
-    }
-
-
-
--- UPDATE
+    = Vote
+    | Select String
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        NoOp ->
-            model
+        Vote ->
+            let
+                selectedChoice =
+                    model.selectedChoice
 
-        SubmitVote ->
-            if (String.isEmpty model.selectedOption) then
-                model
-            else
-                submitvote model
+                updatedChoice =
+                    List.map
+                        (\pChoice ->
+                            if pChoice.choice == selectedChoice then
+                                { pChoice | votes = pChoice.votes + 1 }
+                            else
+                                pChoice
+                        )
+                        model.pollChoices
+            in
+                { model | pollChoices = updatedChoice }
 
-        Vote dessert ->
-            { model | selectedOption = dessert }
-
-
-submitvote : Model -> Model
-submitvote model =
-    case model.selectedOption of
-        "Eclair" ->
-            { model
-                | choiceOne = model.choiceOne + 1
-                , totalVotes = model.totalVotes + 1
-            }
-
-        "Cake" ->
-            { model
-                | choiceTwo = model.choiceTwo + 1
-                , totalVotes = model.totalVotes + 1
-            }
-
-        "Wareva" ->
-            { model
-                | choiceThree = model.choiceThree + 1
-                , totalVotes = model.totalVotes + 1
-            }
-
-        _ ->
-            model
+        Select option ->
+            { model | selectedChoice = option }
 
 
 
@@ -87,36 +72,59 @@ view model =
     div [ class "container" ]
         [ h1 [] [ text "Elm Opinion Poll" ]
         , pollForm model
-        , pollTotals model
+        , pollFooter model
         ]
 
 
 pollForm : Model -> Html Msg
 pollForm model =
-    Html.form [ onSubmit SubmitVote ]
-        [ radio "Eclair" (Vote "Eclair")
-        , radio "Cake" (Vote "Cake")
-        , radio "Wareva!!" (Vote "Wareva")
+    Html.form [ onSubmit Vote ]
+        [ div [] (List.map viewRadioButton <| List.map .choice model.pollChoices)
         , button [ type_ "submit" ] [ text "Vote" ]
         ]
 
 
-pollTotals : Model -> Html Msg
-pollTotals model =
+pollFooter : Model -> Html Msg
+pollFooter model =
     footer []
-        [ div [] [ text "Total:" ]
-        , div [] [ text <| toString <| model.totalVotes ]
+        [ pollTotal model
+        , choiceList model
+        , div [] [ text (toString model) ]
         ]
 
 
-radio : String -> msg -> Html msg
-radio value msg =
+pollTotal : Model -> Html Msg
+pollTotal model =
+    let
+        totals =
+            List.sum <| List.map (\p -> p.votes) model.pollChoices
+    in
+        div []
+            [ text "Totals: ", text (toString totals) ]
+
+
+choiceList : Model -> Html Msg
+choiceList model =
+    model.pollChoices
+        |> List.map choice
+        |> ul []
+
+
+choice : Choice -> Html Msg
+choice choice =
+    li []
+        [ div [] [ text choice.choice, text ":", text (toString choice.votes) ]
+        ]
+
+
+viewRadioButton : String -> Html Msg
+viewRadioButton msg =
     label
-        [ style [ ( "padding", "20px" ) ] ]
-        [ input [ type_ "radio", name "dessert", onClick msg ] []
-        , text value
+        [ style [ ( "padding", "5px" ) ] ]
+        [ input [ type_ "radio", name "dessert", onClick (Select msg) ] []
+        , text msg
         ]
 
 
 main =
-    Html.beginnerProgram { model = initModel, view = view, update = update }
+    Html.beginnerProgram { model = init, view = view, update = update }
