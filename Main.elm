@@ -1,8 +1,10 @@
 module Main exposing (..)
 
+import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+
 
 
 -- MODEL
@@ -12,6 +14,7 @@ type alias Model =
     { votes : List String
     , selectedChoice : String
     , pollChoices : List Choice
+    , showResults : Bool
     }
 
 
@@ -25,9 +28,10 @@ init =
         model =
             Model []
                 ""
-                [ (Choice "Cake" "cake" 0), (Choice "Eclair" "eclair" 0), (Choice "Bread Pudding" "bread-pudding" 0), (Choice "Wareva" "wareva" 0) ]
+                [ Choice "Cake" "cake" 0, Choice "Eclair" "eclair" 0, Choice "Bread Pudding" "bread-pudding" 0, Choice "Wareva" "wareva" 0 ]
+                False
     in
-        model
+    model
 
 
 
@@ -37,6 +41,7 @@ init =
 type Msg
     = Vote
     | Select String
+    | ToggleResults
 
 
 update : Msg -> Model -> Model
@@ -52,15 +57,19 @@ update msg model =
                         (\pChoice ->
                             if pChoice.choice == selectedChoice then
                                 { pChoice | votes = pChoice.votes + 1 }
+
                             else
                                 pChoice
                         )
                         model.pollChoices
             in
-                { model | pollChoices = updatedChoice }
+            { model | pollChoices = updatedChoice, showResults = True }
 
         Select option ->
             { model | selectedChoice = option }
+
+        ToggleResults ->
+            { model | showResults = not model.showResults }
 
 
 
@@ -69,62 +78,154 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ h1 [] [ text "Elm Opinion Poll" ]
-        , pollForm model
-        , pollFooter model
+    div [ class "app-shell" ]
+        [ main_ [ class "container poll-container" ]
+            [ section [ class "poll-card shadow-sm" ]
+                [ div [ class "poll-header" ]
+                    [ p [ class "poll-kicker" ] [ text "Dessert Poll" ]
+                    , h1 [ class "display-6 mb-2" ] [ text "Elm Opinion Poll" ]
+                    , p [ class "text-secondary mb-0" ] [ text "Pick your favorite dessert and see how the vote is shaping up." ]
+                    ]
+                , pollForm model
+                , pollFooter model
+                ]
+            ]
         ]
 
 
 pollForm : Model -> Html Msg
 pollForm model =
-    Html.form [ onSubmit Vote ]
-        [ div [] (List.map viewRadioButton <| List.map .choice model.pollChoices)
-        , button [ type_ "submit" ] [ text "Vote" ]
+    Html.form [ class "poll-form", onSubmit Vote ]
+        [ div [ class "list-group choice-list" ] (List.map viewRadioButton model.pollChoices)
+        , button
+            [ type_ "submit"
+            , class "btn btn-primary btn-lg w-100 mt-4"
+            , disabled (model.selectedChoice == "")
+            ]
+            [ text "Vote" ]
         ]
 
 
 pollFooter : Model -> Html Msg
 pollFooter model =
-    footer []
-        [ pollTotal model
-        , choiceList model
-        , div [] [ text (toString model) ]
+    footer [ class "poll-footer" ]
+        [ button [ type_ "button", class "btn btn-outline-secondary w-100", onClick ToggleResults ]
+            [ text
+                (if model.showResults then
+                    "Hide Results"
+
+                 else
+                    "View Results"
+                )
+            ]
+        , if model.showResults then
+            pollResults model
+
+          else
+            text ""
         ]
 
 
-pollTotal : Model -> Html Msg
-pollTotal model =
+pollResults : Model -> Html Msg
+pollResults model =
     let
         totals =
             List.sum <| List.map (\p -> p.votes) model.pollChoices
     in
-        div []
-            [ text "Totals: ", text (toString totals) ]
-
-
-choiceList : Model -> Html Msg
-choiceList model =
-    model.pollChoices
-        |> List.map choice
-        |> ul []
-
-
-choice : Choice -> Html Msg
-choice choice =
-    li []
-        [ div [] [ text choice.choice, text ":", text (toString choice.votes) ]
+    div [ class "results-panel" ]
+        [ pollTotal totals
+        , choiceList totals model.pollChoices
         ]
 
 
-viewRadioButton : String -> Html Msg
-viewRadioButton msg =
+pollTotal : Int -> Html Msg
+pollTotal totals =
+    div [ class "results-total" ]
+        [ span [] [ text "Total votes" ]
+        , strong [] [ text (String.fromInt totals) ]
+        ]
+
+
+choiceList : Int -> List Choice -> Html Msg
+choiceList totals choices =
+    choices
+        |> List.map (viewChoice totals)
+        |> ul [ class "list-unstyled mb-0" ]
+
+
+viewChoice : Int -> Choice -> Html Msg
+viewChoice totals pollChoice =
+    let
+        votePercentage =
+            percentage totals pollChoice.votes
+    in
+    li [ class "result-row" ]
+        [ div [ class "d-flex align-items-center justify-content-between gap-3" ]
+            [ span [ class "fw-semibold" ] [ text pollChoice.choice ]
+            , span [ class "text-secondary small" ]
+                [ text (String.fromInt pollChoice.votes)
+                , text " votes"
+                , text " · "
+                , text (String.fromInt votePercentage)
+                , text "%"
+                ]
+            ]
+        , div
+            [ class "progress"
+            , attribute "role" "progressbar"
+            , attribute "aria-valuenow" (String.fromInt votePercentage)
+            , attribute "aria-valuemin" "0"
+            , attribute "aria-valuemax" "100"
+            ]
+            [ div
+                [ class "progress-bar"
+                , style "width" (String.fromInt votePercentage ++ "%")
+                ]
+                []
+            ]
+        ]
+
+
+percentage : Int -> Int -> Int
+percentage totals votes =
+    if totals == 0 then
+        0
+
+    else
+        round ((toFloat votes / toFloat totals) * 100)
+
+
+viewRadioButton : Choice -> Html Msg
+viewRadioButton pollChoice =
     label
-        [ style [ ( "padding", "5px" ) ] ]
-        [ input [ type_ "radio", name "dessert", onClick (Select msg) ] []
-        , text msg
+        [ class "list-group-item choice-option" ]
+        [ input
+            [ class "form-check-input me-3"
+            , type_ "radio"
+            , name "dessert"
+            , value pollChoice.value
+            , onClick (Select pollChoice.choice)
+            ]
+            []
+        , span [ class "choice-label" ] [ text pollChoice.choice ]
         ]
 
 
+initElement : () -> ( Model, Cmd Msg )
+initElement _ =
+    ( init, Cmd.none )
+
+
+updateElement : Msg -> Model -> ( Model, Cmd Msg )
+updateElement msg model =
+    ( update msg model, Cmd.none )
+
+
+main : Program () Model Msg
 main =
-    Html.beginnerProgram { model = init, view = view, update = update }
+    Browser.element
+        { init = initElement
+        , update = updateElement
+        , view = view
+        , subscriptions = \_ -> Sub.none
+        }

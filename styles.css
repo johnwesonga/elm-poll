@@ -1,0 +1,134 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(13, 110, 253, 0.14), transparent 30rem),
+    linear-gradient(135deg, #f7f9fc 0%, #eef3f7 48%, #f8f4ed 100%);
+  color: #20242a;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.poll-container {
+  max-width: 680px;
+}
+
+.poll-card {
+  overflow: hidden;
+  border: 1px solid rgba(32, 36, 42, 0.08);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.poll-header {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 1px solid rgba(32, 36, 42, 0.08);
+  background: #ffffff;
+}
+
+.poll-kicker {
+  margin-bottom: 0.35rem;
+  color: #0d6efd;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.poll-form,
+.poll-footer {
+  padding: 1.5rem 2rem;
+}
+
+.poll-footer {
+  padding-top: 0;
+}
+
+.choice-list {
+  gap: 0.75rem;
+}
+
+.choice-option {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(32, 36, 42, 0.12);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.choice-option:hover {
+  border-color: rgba(13, 110, 253, 0.45);
+  box-shadow: 0 0.5rem 1.5rem rgba(32, 36, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.choice-label {
+  font-weight: 600;
+}
+
+.results-panel {
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(32, 36, 42, 0.08);
+}
+
+.results-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: #f3f7fb;
+}
+
+.result-row + .result-row {
+  margin-top: 1rem;
+}
+
+.progress {
+  height: 0.75rem;
+  margin-top: 0.45rem;
+  background-color: #e8edf2;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #0d6efd, #20c997);
+}
+
+@media (max-width: 575.98px) {
+  .app-shell {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .poll-container {
+    padding: 0;
+  }
+
+  .poll-card {
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .poll-header,
+  .poll-form,
+  .poll-footer {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+}
