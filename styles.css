@@ -100,10 +100,39 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   background: #f3f7fb;
+}
+
+.winner-summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 1rem;
+  margin: 0.75rem 0 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(25, 135, 84, 0.18);
+  border-radius: 0.5rem;
+  background: #f1fbf6;
+}
+
+.winner-summary-empty {
+  border-color: rgba(108, 117, 125, 0.18);
+  background: #f7f8fa;
+}
+
+.winner-label {
+  color: #64707d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.winner-votes {
+  align-self: end;
+  color: #64707d;
+  font-size: 0.9rem;
 }
 
 .result-row + .result-row {
@@ -145,6 +174,10 @@ body {
   }
 
   .footer-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .winner-summary {
     grid-template-columns: 1fr;
   }
 }

@@ -234,6 +234,7 @@ pollResults model =
     in
     div [ class "results-panel" ]
         [ pollTotal totals
+        , winnerSummary totals model.pollChoices
         , choiceList totals model.pollChoices
         ]
 
@@ -244,6 +245,51 @@ pollTotal totals =
         [ span [] [ text "Total votes" ]
         , strong [] [ text (String.fromInt totals) ]
         ]
+
+
+winnerSummary : Int -> List Choice -> Html Msg
+winnerSummary totals choices =
+    let
+        topVotes =
+            choices
+                |> List.map .votes
+                |> List.maximum
+                |> Maybe.withDefault 0
+
+        winners =
+            choices
+                |> List.filter (\pollChoice -> pollChoice.votes == topVotes)
+                |> List.map .choice
+    in
+    if totals == 0 then
+        div [ class "winner-summary winner-summary-empty" ]
+            [ span [ class "winner-label" ] [ text "Current winner" ]
+            , strong [] [ text "No votes yet" ]
+            ]
+
+    else
+        div [ class "winner-summary" ]
+            [ span [ class "winner-label" ]
+                [ text
+                    (if List.length winners > 1 then
+                        "Current tie"
+
+                     else
+                        "Current winner"
+                    )
+                ]
+            , strong [] [ text (String.join ", " winners) ]
+            , span [ class "winner-votes" ]
+                [ text (String.fromInt topVotes)
+                , text
+                    (if topVotes == 1 then
+                        " vote"
+
+                     else
+                        " votes"
+                    )
+                ]
+            ]
 
 
 choiceList : Int -> List Choice -> Html Msg
