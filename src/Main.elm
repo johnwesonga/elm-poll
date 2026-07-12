@@ -45,6 +45,7 @@ type Msg
     | UpdateNewChoice String
     | AddChoice
     | ToggleResults
+    | ResetPoll
 
 
 update : Msg -> Model -> Model
@@ -79,6 +80,26 @@ update msg model =
 
         ToggleResults ->
             { model | showResults = not model.showResults }
+
+        ResetPoll ->
+            resetPoll model
+
+
+resetPoll : Model -> Model
+resetPoll model =
+    { model
+        | votes = []
+        , selectedChoice = ""
+        , newChoice = ""
+        , choiceError = Nothing
+        , pollChoices = List.map resetChoice model.pollChoices
+        , showResults = False
+    }
+
+
+resetChoice : Choice -> Choice
+resetChoice pollChoice =
+    { pollChoice | votes = 0 }
 
 
 addChoice : Model -> Model
@@ -184,14 +205,18 @@ customChoiceForm model =
 pollFooter : Model -> Html Msg
 pollFooter model =
     footer [ class "poll-footer" ]
-        [ button [ type_ "button", class "btn btn-outline-secondary w-100", onClick ToggleResults ]
-            [ text
-                (if model.showResults then
-                    "Hide Results"
+        [ div [ class "footer-actions" ]
+            [ button [ type_ "button", class "btn btn-outline-secondary", onClick ToggleResults ]
+                [ text
+                    (if model.showResults then
+                        "Hide Results"
 
-                 else
-                    "View Results"
-                )
+                     else
+                        "View Results"
+                    )
+                ]
+            , button [ type_ "button", class "btn btn-outline-danger", onClick ResetPoll ]
+                [ text "Reset Poll" ]
             ]
         , if model.showResults then
             pollResults model
