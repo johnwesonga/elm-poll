@@ -26,16 +26,13 @@ type alias Choice =
 
 init : Model
 init =
-    let
-        model =
-            Model []
-                ""
-                ""
-                Nothing
-                [ Choice "Cake" "cake" 0, Choice "Eclair" "eclair" 0, Choice "Bread Pudding" "bread-pudding" 0, Choice "Wareva" "wareva" 0 ]
-                False
-    in
-    model
+    { votes = []
+    , selectedChoice = ""
+    , newChoice = ""
+    , choiceError = Nothing
+    , pollChoices = [ Choice "Cake" "cake" 0, Choice "Eclair" "eclair" 0, Choice "Bread Pudding" "bread-pudding" 0, Choice "Wareva" "wareva" 0 ]
+    , showResults = False
+    }
 
 
 
