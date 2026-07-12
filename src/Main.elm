@@ -13,6 +13,8 @@ import Html.Events exposing (..)
 type alias Model =
     { votes : List String
     , selectedChoice : String
+    , newChoice : String
+    , choiceError : Maybe String
     , pollChoices : List Choice
     , showResults : Bool
     }
@@ -28,6 +30,8 @@ init =
         model =
             Model []
                 ""
+                ""
+                Nothing
                 [ Choice "Cake" "cake" 0, Choice "Eclair" "eclair" 0, Choice "Bread Pudding" "bread-pudding" 0, Choice "Wareva" "wareva" 0 ]
                 False
     in
@@ -41,6 +45,8 @@ init =
 type Msg
     = Vote
     | Select String
+    | UpdateNewChoice String
+    | AddChoice
     | ToggleResults
 
 
@@ -68,8 +74,49 @@ update msg model =
         Select option ->
             { model | selectedChoice = option }
 
+        UpdateNewChoice choice ->
+            { model | newChoice = choice, choiceError = Nothing }
+
+        AddChoice ->
+            addChoice model
+
         ToggleResults ->
             { model | showResults = not model.showResults }
+
+
+addChoice : Model -> Model
+addChoice model =
+    let
+        trimmedChoice =
+            String.trim model.newChoice
+
+        normalizedChoice =
+            String.toLower trimmedChoice
+
+        choiceExists =
+            model.pollChoices
+                |> List.any (\pollChoice -> String.toLower pollChoice.choice == normalizedChoice)
+    in
+    if trimmedChoice == "" then
+        { model | choiceError = Just "Enter a choice before adding it." }
+
+    else if choiceExists then
+        { model | choiceError = Just "That choice is already in the poll." }
+
+    else
+        { model
+            | pollChoices = model.pollChoices ++ [ Choice trimmedChoice (choiceValue trimmedChoice) 0 ]
+            , newChoice = ""
+            , choiceError = Nothing
+        }
+
+
+choiceValue : String -> String
+choiceValue choice =
+    choice
+        |> String.toLower
+        |> String.words
+        |> String.join "-"
 
 
 
@@ -84,9 +131,10 @@ view model =
                 [ div [ class "poll-header" ]
                     [ p [ class "poll-kicker" ] [ text "Dessert Poll" ]
                     , h1 [ class "display-6 mb-2" ] [ text "Elm Opinion Poll" ]
-                    , p [ class "text-secondary mb-0" ] [ text "Pick your favorite dessert and see how the vote is shaping up." ]
+                    , p [ class "text-secondary mb-0" ] [ text "Pick your favorite dessert, add a new option, and see how the vote is shaping up." ]
                     ]
                 , pollForm model
+                , customChoiceForm model
                 , pollFooter model
                 ]
             ]
@@ -103,6 +151,36 @@ pollForm model =
             , disabled (model.selectedChoice == "")
             ]
             [ text "Vote" ]
+        ]
+
+
+customChoiceForm : Model -> Html Msg
+customChoiceForm model =
+    Html.form [ class "custom-choice-form", onSubmit AddChoice ]
+        [ label [ class "form-label fw-semibold", for "new-choice" ] [ text "Add a choice" ]
+        , div [ class "input-group" ]
+            [ input
+                [ id "new-choice"
+                , class "form-control"
+                , type_ "text"
+                , placeholder "e.g. Ice cream"
+                , value model.newChoice
+                , onInput UpdateNewChoice
+                ]
+                []
+            , button
+                [ type_ "submit"
+                , class "btn btn-success"
+                , disabled (String.trim model.newChoice == "")
+                ]
+                [ text "Add" ]
+            ]
+        , case model.choiceError of
+            Just errorMessage ->
+                div [ class "form-text text-danger" ] [ text errorMessage ]
+
+            Nothing ->
+                div [ class "form-text" ] [ text "New choices start with zero votes." ]
         ]
 
 
